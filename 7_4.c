@@ -1,5 +1,3 @@
-//teste
-
 #include <stdio.h>
 
 int determineSeOrdenado(int tamanho, int vetor[]){

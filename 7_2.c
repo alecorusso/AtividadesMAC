@@ -15,6 +15,5 @@ void main(){
         seno += parcela;
     }
     
-    printf("%6.3f\n", seno);
-    printf("%6.3f\n", sin(x));
+    printf("%d :  %6.3f =   %6.3f\n", n, seno, sin(x));
 }

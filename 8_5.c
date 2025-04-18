@@ -7,7 +7,7 @@ void main(){
 
     for(int i = 0; i < n; i++){
         scanf("%d", &inteiro);
-        bits[inteiro] = 1;
+        bits[inteiro]++;
     }
 
     int indice = 0;

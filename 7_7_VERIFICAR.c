@@ -1,3 +1,6 @@
+// Verificar se pode utilizar o algoritmo de ordenação ou se deve ordenar diretamente na inserção
+// Output requerido pelo avaliador automático pede para imprimir o vetor de conjuntos não ordenado, contradizendo o enunciado
+
 #include <stdio.h>
 
 int conjunto_representantes(int tamanho, int vetor[], int conjunto[], int *soma){

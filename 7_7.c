@@ -1,6 +1,3 @@
-// Verificar se pode utilizar o algoritmo de ordenação ou se deve ordenar diretamente na inserção
-// Output requerido pelo avaliador automático pede para imprimir o vetor de conjuntos não ordenado, contradizendo o enunciado
-
 #include <stdio.h>
 
 int conjunto_representantes(int tamanho, int vetor[], int conjunto[], int *soma){
@@ -27,16 +24,6 @@ int conjunto_representantes(int tamanho, int vetor[], int conjunto[], int *soma)
     return tamanho_conjunto;
 }
 
-int determineIndiceDoMenor(int vetor[], int inicial, int tamanho){
-    int menor = inicial;
-    for(int i = inicial; i < tamanho; i++){
-        if(vetor[i] < vetor[menor]){
-            menor = i;
-        }
-    }
-    return menor;
-}
-
 void main(){
     int n, v[1000], representantes[1000], sum, *appontsum = &sum;
 
@@ -47,13 +34,6 @@ void main(){
     }
 
     int tamanho_representantes = conjunto_representantes(n, v, representantes, appontsum);
-
-    for(int i = 0; i<tamanho_representantes-1; i++){
-        int indice = determineIndiceDoMenor(representantes, i, tamanho_representantes);
-        int aux = representantes[i];
-        representantes[i] = representantes[indice];
-        representantes[indice] = aux;
-    }
 
     printf("%d\n", tamanho_representantes);
     for(int i = 0; i < tamanho_representantes; i++){

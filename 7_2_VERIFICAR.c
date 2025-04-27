@@ -11,11 +11,14 @@ void main(){
     scanf("%f", &x);
 
     seno = x;
-
+    parcela = x;
+    
     for (int i = 1; i < n; i++){
+        //printf("%f\n", x*x);
+        //printf("%f\n", x*x/((2*i)*((2*i)+1)));
         parcela = -parcela*x*x/((2*i)*((2*i)+1));
         seno += parcela;
     }
     
-    printf("%d :  %6.3f =   %6.3f\n", x, seno, sin(x));
+    printf("%1.1f :  %6.3f =   %6.3f\n", x, seno, sin(x));
 }

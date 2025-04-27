@@ -15,11 +15,11 @@ long buscar_digitos(char string[], char digitos[], int tamanho, int *tamanhodigi
         }
     }
 
+    *tamanhodigitos = ndigitos;
+
     if (ndigitos == 0){
         return 0;
     }
-
-    *tamanhodigitos = ndigitos;
 
     int aux = digitos[ndigitos-1] - 48, multiplicador = 1;
     representante = aux;

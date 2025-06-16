@@ -62,8 +62,8 @@ void main(void)
         duracao_sinal = instante_up - instante_down;
         duracao = (duracao_sinal/TPM_MOD)/frequencia_PWM;
         distancia = duracao*velocidade_do_som/2;
-        printk("Instante ALTO (tick): %d\n", instante_down);
-        printk("Instante BAIXO (tick): %d\n", instante_up);
+        printk("Instante ALTO (tick): %d\n", instante_up);
+        printk("Instante BAIXO (tick): %d\n", instante_down);
         printk("Duração (ticks): %d\n", duracao_sinal);
         printf("Duração (segundos): %f\n", duracao);
         printf("Distancia (metros): %f\n", distancia);

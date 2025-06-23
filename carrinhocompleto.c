@@ -53,7 +53,7 @@ void main(void)
     pwm_tpm_Init(TPM1, TPM_PLLFLL, TPM_MOD_ULTRASSOM, TPM_CLK, PS_128, EDGE_PWM);
 
     // Configura canal 0 do TPM1 como Output Echo (input capture na borda de descida)
-    pwm_tpm_Ch_Init(TPM1, 0, TPM_INPUT_CAPTURE_FALLING| TPM_CHANNEL_INTERRUPT, GPIOE, pinoEchoUP);
+    pwm_tpm_Ch_Init(TPM1, 0, TPM_INPUT_CAPTURE_FALLING| TPM_CHANNEL_INTERRUPT, GPIOE, pinoEchoDOWN);
 
     // Configura canal 1 do TPM1 para trigger do sinal de ultrassom
     pwm_tpm_Ch_Init(TPM1, 1, TPM_PWM_H, GPIOB, pinoTrigger);
@@ -92,7 +92,6 @@ void main(void)
             printf("Duração (milisegundos): %f\n", duracao);
             printf("Distancia (centimetros): %f\n", distancia);
             printk("\n");*/
-            while (duracao_sinal > 448) {
                    valDireito = gpio_pin_get(portaE, INPUT_PIN_DIREITO);
                    valEsquerdo = gpio_pin_get(portaC, INPUT_PIN_ESQUERDO);
                    if(valEsquerdo == 0 && valDireito == 0){
@@ -100,13 +99,13 @@ void main(void)
                           pwm_tpm_CnV(TPM0, 2, duty_motor);
                           pwm_tpm_CnV(TPM0, 3, 0);          // Motor esquerdo para frente
                           pwm_tpm_CnV(TPM0, 4, duty_motor);
-                          //printk("Valor do direito: %d\n", valDireito);
-                          //printk("Valor do esquerdo: %d\n", valEsquerdo);
-                          //printk("---------------------------\n");
-                          //k_msleep(200);
+                         /* printk("Valor do direito: %d\n", valDireito);
+                          printk("Valor do esquerdo: %d\n", valEsquerdo);
+                          printk("---------------------------\n");
+                          k_msleep(200);*/
                    }
        
-                   if(valDireito == 1 && valEsquerdo == 0){
+                   else if(valDireito == 1 && valEsquerdo == 0){
                        //printk("entrou regresso direito\n");
                        pwm_tpm_CnV(TPM0, 1, duty_motor);
                        pwm_tpm_CnV(TPM0, 2, 0);

@@ -1,6 +1,6 @@
 // Código do carrinho seguidor de linha com infravermelho e ultrassom
-// Feito por Alexander Oliveira e Matheus Viana
-// Versão 1.0
+// Feito por Alexander Oliveira, Matheus Viana e Gabriel Albuquerque
+// Versão 1.1
 
 #include <zephyr.h>             // Funções básicas do Zephyr (ex: k_msleep)
 #include <drivers/gpio.h>       // API para controle de GPIO

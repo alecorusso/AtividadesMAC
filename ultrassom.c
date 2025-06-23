@@ -10,6 +10,8 @@
 #define TPM_MOD 37500
 #define frequencia_PWM 10 // 
 #define velocidade_do_som 34000 //cm/s
+#define TPM_MOD_MOTORES 3749
+uint16_t duty_motor = 3500;
 
 volatile uint16_t instante_up = 846; // 846 << tick alto << 847
 volatile uint16_t instante_down = 0;
@@ -38,22 +40,56 @@ void main(void)
     // Define duração do sinal de trigger para 20 microssegundos
     pwm_tpm_CnV(TPM1, 1, 15);
 
+    // Motores
+    // Inicializa TPM0 para motores com módulo e prescaler desejado
+    pwm_tpm_Init(TPM0, TPM_PLLFLL, TPM_MOD_MOTORES, TPM_CLK, PS_128, EDGE_PWM);
+
+    pwm_tpm_Ch_Init(TPM0, 1, TPM_PWM_H, GPIOA, 4); // PTA4 para movimento dianteiro do motor direito
+    pwm_tpm_Ch_Init(TPM0, 2, TPM_PWM_H, GPIOA, 5); // PTA5 para movimento traseiro do motor direito
+    pwm_tpm_Ch_Init(TPM0, 3, TPM_PWM_H, GPIOC, 4); // PTC4 para movimento dianteiro do motor esquerdo
+    pwm_tpm_Ch_Init(TPM0, 4, TPM_PWM_H, GPIOD, 4); // PTD4 para movimento traseiro do motor esquerdo
+
     int duracao_sinal = 0;
     float duracao = 0;
     float distancia = 0;
-    while (1)
-    {
+    while (1){
+    //TICK DE 20 CM ~ 1294
+    //DURAÇÃO DE 20 CM - 448
         duracao_sinal = instante_down - instante_up;
         duracao = (duracao_sinal/37500.0)/frequencia_PWM;
         distancia = duracao*velocidade_do_som/2;
-        printk("Instante ALTO (tick): %d\n", instante_up);
+        /*printk("Instante ALTO (tick): %d\n", instante_up);
         printk("Instante BAIXO (tick): %d\n", instante_down);
         printk("Duração (ticks): %d\n", duracao_sinal);
         printf("Duração (segundos): %f\n", duracao);
         printf("Distancia (metros): %f\n", distancia);
         printk("\n");
-        k_msleep(500);
+        k_msleep(500);*/
+        while(duracao_sinal > 448){
+            duracao_sinal = instante_down - instante_up;
+            duracao = (duracao_sinal/37500.0)/frequencia_PWM;
+            distancia = duracao*velocidade_do_som/2;
+            /*printk("Instante ALTO (tick): %d\n", instante_up);
+            printk("Instante BAIXO (tick): %d\n", instante_down);
+            printk("Duração (ticks): %d\n", duracao_sinal);
+            printf("Duração (milisegundos): %f\n", duracao);
+            printf("Distancia (centimetros): %f\n", distancia);
+            printk("\n");*/
+            pwm_tpm_CnV(TPM0, 1, 0);          
+            pwm_tpm_CnV(TPM0, 2, duty_motor);
+            pwm_tpm_CnV(TPM0, 3, 0);         
+            pwm_tpm_CnV(TPM0, 4, duty_motor);
+        }
+       while(duracao_sinal <= 448){
+            pwm_tpm_CnV(TPM0, 1, 0);          
+            pwm_tpm_CnV(TPM0, 2, 0);
+            pwm_tpm_CnV(TPM0, 3, 0);          
+            pwm_tpm_CnV(TPM0, 4, 0);
+            //printk("Esperando...\n");
+            duracao_sinal = instante_down - instante_up;
+            duracao = (duracao_sinal/37500.0)/frequencia_PWM;
+            distancia = duracao*velocidade_do_som/2;
+            //k_msleep(500);
+        }
     }
 }
-
-//TICK DE 20 CM ~ 1294

@@ -15,7 +15,7 @@
 #define TPM_MOD_ULTRASSOM 37500
 #define frequencia_PWM 0.01 // ciclos/ms
 #define velocidade_do_som 34 //cm/ms
-volatile uint16_t instante_up = 846; // 846 << tick alto << 847 (aproximadamente constante)
+volatile uint16_t instante_up = 846; // Armazena instante (em ticks) da borda de subida do sinal de Echo (846 << tick alto << 847 => valor aproximadamente constante)
 volatile uint16_t instante_down = 0; // Armazena instante (em ticks) da borda de descida do sinal de Echo
 
 // Sensores Infravermelho e motores

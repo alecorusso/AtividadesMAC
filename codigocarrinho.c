@@ -3,92 +3,68 @@
 #include <drivers/gpio.h>
 #include "pwm.h"
 
-#define INPUT_PORT_E  "GPIO_4"   // Porta E
 #define INPUT_PORT_C  "GPIO_2"   // Porta C
-#define INPUT_PIN_DIREITO   29         // PTE29 (sensor direito)
-#define INPUT_PIN_ESQUERDO   6          // PTC6 (sensor esquerdo)
-#define TPM_MODULE 3749
-uint16_t duty_motor = 3500;
+#define INPUT_PORT_E  "GPIO_4"   // Porta E
+#define pinoDireitoFrente     1  // PTC1
+#define pinoDireitoTras       2  // PTC2
+#define pinoEsquerdoFrente    3  // PTC3
+#define pinoEsquerdoTras      4  // PTC4
+#define TPM_MOD_MOTORES 7500
+uint16_t duty_motor_direito = TPM_MOD_MOTORES*3/5;
+uint16_t duty_motor_esquerdo = TPM_MOD_MOTORES*2/3;
 
-void main(void)
-{
-    const struct device *portaE;
-    const struct device *portaC;
-    int direcPTE29, direcPTC6, valDireito, valEsquerdo;
+#define pinoSensorDireito   12         // PTC12 (sensor direito)
+#define pinoSensorEsquerdo  13         // PTC13 (sensor esquerdo)
 
-    pwm_tpm_Init(TPM0_BASE_PTR, TPM_PLLFLL, TPM_MODULE, TPM_CLK, PS_128, EDGE_PWM);
-    pwm_tpm_Init(TPM1_BASE_PTR, TPM_PLLFLL, TPM_MODULE, TPM_CLK, PS_128, EDGE_PWM);
-    pwm_tpm_Ch_Init(TPM0, 1, TPM_PWM_H, GPIOA, 4);
-    pwm_tpm_Ch_Init(TPM0, 2, TPM_PWM_H, GPIOA, 5);
-    pwm_tpm_Ch_Init(TPM1, 0, TPM_PWM_H, GPIOA, 12);
-    pwm_tpm_Ch_Init(TPM0, 4, TPM_PWM_H, GPIOD, 4);
+void main(void){
 
-    portaE = device_get_binding(INPUT_PORT_E);
-    portaC = device_get_binding(INPUT_PORT_C);
+    // Motores
+    // Inicializa TPM0 com módulo e prescaler desejado
+    pwm_tpm_Init(TPM0_BASE_PTR, TPM_PLLFLL, TPM_MOD_MOTORES, TPM_CLK, PS_128, EDGE_PWM);
+    // Configura canais 0, 1, 2 e 3 do TPM0 para controle dos sentidos dos motores
+    pwm_tpm_Ch_Init(TPM0, 0, TPM_PWM_H, GPIOC, 1);    // Movimento dianteiro motor direito
+    pwm_tpm_Ch_Init(TPM0, 1, TPM_PWM_H, GPIOC, 2);    // Movimento traseiro motor direito
+    pwm_tpm_Ch_Init(TPM0, 2, TPM_PWM_H, GPIOC, 3);    // Movimento dianteiro motor esquerdo
+    pwm_tpm_Ch_Init(TPM0, 3, TPM_PWM_H, GPIOC, 4);    // Movimento traseiro motor esquerdo
 
-    direcPTE29 = gpio_pin_configure(portaE, INPUT_PIN_DIREITO, GPIO_INPUT);
-    direcPTC6 = gpio_pin_configure(portaC, INPUT_PIN_ESQUERDO, GPIO_INPUT);
+    // Sensores IV
+    // Define variável para endereço da portaC
+    const struct device *portaC = device_get_binding(INPUT_PORT_C);
+    // Define pinos dos sensores IV como input digital
+    gpio_pin_configure(portaC, pinoSensorDireito, GPIO_INPUT);
+    gpio_pin_configure(portaC, pinoSensorEsquerdo, GPIO_INPUT);
+    int valDireito, valEsquerdo;
 
     while (1) {
-         valDireito = gpio_pin_get(portaE, INPUT_PIN_DIREITO);
-         valEsquerdo = gpio_pin_get(portaC, INPUT_PIN_ESQUERDO);
+        valDireito = !gpio_pin_get(portaC, pinoSensorEsquerdo);
+        valEsquerdo = !gpio_pin_get(portaC, pinoSensorDireito);
 
-         if(valDireito == 1 && valEsquerdo == 1){
-            pwm_tpm_CnV(TPM0, 1, 0);          // Motor direito pra frente
-            pwm_tpm_CnV(TPM0, 2, duty_motor);
-            pwm_tpm_CnV(TPM1, 0, 0);          // Motor esquerdo para frente
-            pwm_tpm_CnV(TPM0, 4, duty_motor);
-           valDireito = gpio_pin_get(portaE, INPUT_PIN_DIREITO);
-           valEsquerdo = gpio_pin_get(portaC, INPUT_PIN_ESQUERDO);
+        if(valDireito == 1 && valEsquerdo == 1){
+            pwm_tpm_CnV(TPM0, 0, duty_motor_direito);     // Motor direito pra frente
+            pwm_tpm_CnV(TPM0, 1, 0);
+            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo);    // Motor esquerdo para frente
+            pwm_tpm_CnV(TPM0, 3, 0);
         }
 
-           else if(valDireito == 1 && valEsquerdo == 0){
-                //printk("entrou regresso direito\n");
-                pwm_tpm_CnV(TPM0, 1, duty_motor);
-                pwm_tpm_CnV(TPM0, 2, 0);
-                pwm_tpm_CnV(TPM1, 0, 0);          // Motor esquerdo para frente
-                pwm_tpm_CnV(TPM0, 4, duty_motor);
-                valDireito = gpio_pin_get(portaE, INPUT_PIN_DIREITO);
-                valEsquerdo = gpio_pin_get(portaC, INPUT_PIN_ESQUERDO);
-                printk("Valor do direito: %d\n", valDireito);
-                //printk("Valor do esquerdo: %d\n", valEsquerdo);
-                //printk("---------------------------\n");
-                //k_msleep(200);
-            }
-        
-            else if(valEsquerdo == 1 && valDireito == 0){
-                //printk("entrou regresso esquerdo\n");
-                pwm_tpm_CnV(TPM0, 1, 0);          // Motor direito pra frente
-                pwm_tpm_CnV(TPM0, 2, duty_motor);
-                pwm_tpm_CnV(TPM1, 0, duty_motor);
-                pwm_tpm_CnV(TPM0, 4, 0);
-                valDireito = gpio_pin_get(portaE, INPUT_PIN_DIREITO);
-                valEsquerdo = gpio_pin_get(portaC, INPUT_PIN_ESQUERDO);
-                printk("Valor do direito: %d\n", valDireito);
-                //printk("Valor do esquerdo: %d\n", valEsquerdo);
-                //printk("---------------------------\n");
-                //k_msleep(200);
-                
-            }
-
-            else if(valEsquerdo == 0 && valDireito == 0){
-                //printk("entrou regresso ambos\n");
-                pwm_tpm_CnV(TPM1, 0, duty_motor);
-                pwm_tpm_CnV(TPM0, 4, 0);
-                pwm_tpm_CnV(TPM0, 1, duty_motor);
-                pwm_tpm_CnV(TPM0, 2, 0);
-                valDireito = gpio_pin_get(portaE, INPUT_PIN_DIREITO);
-                valEsquerdo = gpio_pin_get(portaC, INPUT_PIN_ESQUERDO);
-                //printk("Valor do direito: %d\n", valDireito);
-                //printk("Valor do esquerdo: %d\n", valEsquerdo);
-                //printk("---------------------------\n");
-                //k_msleep(200);
-                
-            }
-
-            //printk("Valor do direito: %d\n", valDireito);
-            //printk("Valor do esquerdo: %d\n", valEsquerdo);
-            //printk("---------------------------\n");
-            //k_msleep(200);
+        else if(valDireito == 1 && valEsquerdo == 0){
+            pwm_tpm_CnV(TPM0, 0, duty_motor_direito);     // Motor direito pra frente
+            pwm_tpm_CnV(TPM0, 1, 0);
+            pwm_tpm_CnV(TPM0, 2, 0);                      // Motor esquerdo trava
+            pwm_tpm_CnV(TPM0, 3, 0);
         }
+
+        else if(valDireito == 0 && valEsquerdo == 1){
+            pwm_tpm_CnV(TPM0, 0, 0);                      // Motor direito trava
+            pwm_tpm_CnV(TPM0, 1, 0);
+            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo);    // Motor esquerdo para frente
+            pwm_tpm_CnV(TPM0, 3, 0);
+        }
+
+        else if(valDireito == 0 && valEsquerdo == 0){
+            pwm_tpm_CnV(TPM0, 0, duty_motor_direito);     // Motor direito pra frente
+            pwm_tpm_CnV(TPM0, 1, 0);
+            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo);    // Motor esquerdo para frente
+            pwm_tpm_CnV(TPM0, 3, 0);
+        }
+    }
 }

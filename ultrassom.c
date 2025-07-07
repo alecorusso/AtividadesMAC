@@ -15,8 +15,8 @@
 #define frequencia_PWM_Ultrassom 50 // Hz
 #define velocidade_do_som 34550.0  // cm/s
 #define TPM_MOD_MOTORES 7500     // 50 Hz
-uint16_t duty_motor_direito = TPM_MOD_MOTORES*2/3;
-uint16_t duty_motor_esquerdo = TPM_MOD_MOTORES*4/9;
+uint16_t duty_motor_esquerdo = TPM_MOD_MOTORES*2/3;
+uint16_t duty_motor_direito = TPM_MOD_MOTORES*4/9;
 
 volatile uint16_t instante_up = 932; // tick alto ~ 932
 volatile uint16_t instante_down = 0; // variável para armazenar tick da borda de descida (instante 20 cm ~~ 1363)
@@ -74,6 +74,33 @@ void main(void)
 
     int flag = 0;
     int parcela = 0;
+    parcela = 0;
+    for(int i = 0; i < 5; i ++){
+        parcela += ticks[i];
+    }
+    duracao_sinal = parcela/5 - instante_up; // duracao de 20 cm ~ 431
+    duracao = (duracao_sinal*1.0/TPM_MOD_ULTRASSOM)/frequencia_PWM_Ultrassom;
+    distancia = duracao*velocidade_do_som/2;
+    int direcao = -1;
+
+    if (duracao_sinal > 450){
+            pwm_tpm_CnV(TPM0, 0, 0);                           // Motor direito para trás
+            pwm_tpm_CnV(TPM0, 1, duty_motor_direito);    
+            pwm_tpm_CnV(TPM0, 2, 0);                           // Motor esquerdo para trás
+            pwm_tpm_CnV(TPM0, 3, duty_motor_esquerdo);
+            k_msleep(300);
+            direcao = 1;
+        }
+
+        else if (duracao_sinal < 410){
+            pwm_tpm_CnV(TPM0, 0, duty_motor_direito);                       // Motor direito para frente
+            pwm_tpm_CnV(TPM0, 1, 0);    
+            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo);                       // Motor esquerdo para frente
+            pwm_tpm_CnV(TPM0, 3, 0);
+            k_msleep(300);
+            direcao = 0;
+        }
+
     while (1){
 		parcela = 0;
         for(int i = 0; i < 5; i ++){
@@ -89,62 +116,65 @@ void main(void)
         printk("Instante BAIXO 4 (tick): %d\n", ticks[3]);
         printk("Instante BAIXO 5 (tick): %d\n", ticks[4]);
 		*/
-        printk("Duração (ticks): %d\n", duracao_sinal);
+        //printk("Duração (ticks): %d\n", duracao_sinal);
         //printf("Duração (segundos): %f\n", duracao);
         //printf("Distancia (metros): %f\n", distancia);
-		printk("flag: %d\n", flag);
+		//printk("flag: %d\n", flag);
         //printk("\n");
-		k_msleep(500);
-
-        if(duracao_sinal > 900 && flag < 5){
-            pwm_tpm_CnV(TPM0, 0, duty_motor_direito);     // Motor direito para frente
-            pwm_tpm_CnV(TPM0, 1, 0);    
-            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo);    // Motor esquerdo para frente
-            pwm_tpm_CnV(TPM0, 3, 0);
-            flag = 0;   
-        }
-
-        else if (900 > duracao_sinal && duracao_sinal > 500 && flag < 5){
-            pwm_tpm_CnV(TPM0, 0, duty_motor_direito/2);     // Motor direito para frente
-            pwm_tpm_CnV(TPM0, 1, 0);    
-            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo/2);    // Motor esquerdo para frente
-            pwm_tpm_CnV(TPM0, 3, 0);
-            flag = 0;
-        }
-
-        else if (500 > duracao_sinal && duracao_sinal > 439 && flag < 5){
-            pwm_tpm_CnV(TPM0, 0, duty_motor_direito/4);     // Motor direito para frente
-            pwm_tpm_CnV(TPM0, 1, 0);    
-            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo/4);    // Motor esquerdo para frente
-            pwm_tpm_CnV(TPM0, 3, 0);
-            flag = 0;
-        }
-
-        else if (300 < duracao_sinal && duracao_sinal < 419 && flag < 5){
-            pwm_tpm_CnV(TPM0, 0, 0);                       // Motor direito para trás
-            pwm_tpm_CnV(TPM0, 1, duty_motor_direito/4);    
-            pwm_tpm_CnV(TPM0, 2, 0);                       // Motor esquerdo para trás
-            pwm_tpm_CnV(TPM0, 3, duty_motor_direito/4);
-            flag = 0;
-        }
-
-        else if (100 < duracao_sinal && duracao_sinal < 300 && flag < 5){
-            pwm_tpm_CnV(TPM0, 0, 0);                       // Motor direito para trás
+		//k_msleep(500);
+        
+        if (duracao_sinal > 450 && flag < 5 && direcao == 1){
+            pwm_tpm_CnV(TPM0, 0, 0);                           // Motor direito para trás
             pwm_tpm_CnV(TPM0, 1, duty_motor_direito/2);    
-            pwm_tpm_CnV(TPM0, 2, 0);                       // Motor esquerdo para trás
-            pwm_tpm_CnV(TPM0, 3, duty_motor_direito/2);
+            pwm_tpm_CnV(TPM0, 2, 0);                           // Motor esquerdo para trás
+            pwm_tpm_CnV(TPM0, 3, duty_motor_esquerdo/2);
             flag = 0;
         }
-
-        else if (duracao_sinal < 100 && flag < 5){
-            pwm_tpm_CnV(TPM0, 0, 0);                       // Motor direito para trás
+         if (duracao_sinal > 450 && flag < 5 && direcao == 0){
+            pwm_tpm_CnV(TPM0, 0, 0);                           // Motor direito para trás
             pwm_tpm_CnV(TPM0, 1, duty_motor_direito);    
-            pwm_tpm_CnV(TPM0, 2, 0);                       // Motor esquerdo para trás
-            pwm_tpm_CnV(TPM0, 3, duty_motor_direito);
+            pwm_tpm_CnV(TPM0, 2, 0);                           // Motor esquerdo para trás
+            pwm_tpm_CnV(TPM0, 3, duty_motor_esquerdo);
+            k_msleep(100);
+            pwm_tpm_CnV(TPM0, 0, 0);                           // Motor direito para trás
+            pwm_tpm_CnV(TPM0, 1, duty_motor_direito/2);    
+            pwm_tpm_CnV(TPM0, 2, 0);                           // Motor esquerdo para trás
+            pwm_tpm_CnV(TPM0, 3, duty_motor_esquerdo/2);
             flag = 0;
+            direcao = 1;
         }
 
-        else if (439 > duracao_sinal && duracao_sinal > 419 && flag < 5){
+        else if (duracao_sinal < 410 && flag < 5 && direcao == 0){
+            pwm_tpm_CnV(TPM0, 0, duty_motor_direito/2);                       // Motor direito para frente
+            pwm_tpm_CnV(TPM0, 1, 0);    
+            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo/2);                       // Motor esquerdo para frente
+            pwm_tpm_CnV(TPM0, 3, 0);
+            flag = 0;
+        }
+        else if (duracao_sinal < 410 && flag < 5 && direcao == 1){
+            pwm_tpm_CnV(TPM0, 0, duty_motor_direito);                       // Motor direito para frente
+            pwm_tpm_CnV(TPM0, 1, 0);    
+            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo);                       // Motor esquerdo para frente
+            pwm_tpm_CnV(TPM0, 3, 0);
+            k_msleep(100);
+            pwm_tpm_CnV(TPM0, 0, duty_motor_direito/2);                       // Motor direito para frente
+            pwm_tpm_CnV(TPM0, 1, 0);    
+            pwm_tpm_CnV(TPM0, 2, duty_motor_esquerdo/2);                       // Motor esquerdo para frente
+            pwm_tpm_CnV(TPM0, 3, 0);
+            flag = 0;
+            direcao = 0;
+        }
+
+        else if (450 > duracao_sinal && duracao_sinal > 410 && flag < 1){
+            pwm_tpm_CnV(TPM0, 0, 0);                       // Motor direito travado
+            pwm_tpm_CnV(TPM0, 1, 0);    
+            pwm_tpm_CnV(TPM0, 2, 0);                       // Motor esquerdo travado
+            pwm_tpm_CnV(TPM0, 3, 0);
+            k_msleep(300);
+            flag++;
+        }
+
+        else if (450 > duracao_sinal && duracao_sinal > 410 && flag < 5){
             pwm_tpm_CnV(TPM0, 0, 0);                       // Motor direito travado
             pwm_tpm_CnV(TPM0, 1, 0);    
             pwm_tpm_CnV(TPM0, 2, 0);                       // Motor esquerdo travado
@@ -152,7 +182,7 @@ void main(void)
             flag++;
         }
 
-        else if (439 > duracao_sinal && duracao_sinal > 419 && flag == 5){
+        else if (450 > duracao_sinal && duracao_sinal > 410 && flag == 5){
             for(int i = 0; i < 8; i++){
                 gpio_pin_toggle(portB, LED_PIN);
                 k_msleep(300);

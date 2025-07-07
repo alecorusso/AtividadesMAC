@@ -10,8 +10,8 @@
 #define pinoEsquerdoFrente    3  // PTC3
 #define pinoEsquerdoTras      4  // PTC4
 #define TPM_MOD_MOTORES 7500
-uint16_t duty_motor_direito = TPM_MOD_MOTORES*2/3;
-uint16_t duty_motor_esquerdo = TPM_MOD_MOTORES*4/9;
+uint16_t duty_motor_esquerdo = TPM_MOD_MOTORES*2/3;
+uint16_t duty_motor_direito = TPM_MOD_MOTORES*4/9;
 
 #define pinoSensorDireito   12         // PTC12 (sensor direito)
 #define pinoSensorEsquerdo  13         // PTC13 (sensor esquerdo)
